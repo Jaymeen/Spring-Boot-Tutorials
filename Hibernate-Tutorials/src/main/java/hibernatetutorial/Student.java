@@ -5,51 +5,29 @@ import jakarta.persistence.Id;
 
 @Entity
 public class Student {
-    public String name;
-    public int age;
-
     @Id
     public int rollNo;
+    public String name;
+    public int age;
+    public Address address;
 
-    public Student(String name, int age, int rollNo) {
+    public Student(String name, int age, int rollNo, Address address) {
         this.name = name;
         this.age = age;
         this.rollNo = rollNo;
+        this.address = address;
     }
 
     public Student() {
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public int getRollNo() {
-        return rollNo;
-    }
-
-    public void setRollNo(int rollNo) {
-        this.rollNo = rollNo;
-    }
-
     @Override
     public String toString() {
         return "Student{" +
-                "name='" + name + '\'' +
+                "rollNo=" + rollNo +
+                ", name='" + name + '\'' +
                 ", age=" + age +
-                ", rollNo=" + rollNo + ' ' +
+                ", address=" + address + ' ' +
                 '}';
     }
 }
