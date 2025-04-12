@@ -13,5 +13,6 @@
         <property name="hibernate.hbm2ddl.auto">update</property>
 
         <mapping class="hibernatetutorial.Student"/>
+        <mapping class="hibernatetutorial.Laptop"/>
     </session-factory>
 </hibernate-configuration>
