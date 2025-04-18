@@ -2,8 +2,10 @@ package hibernatetutorial;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Laptop {
@@ -14,9 +16,8 @@ public class Laptop {
     public String model;
     public double price;
 
-    @ManyToOne
-    @JoinColumn(name = "student_rollno")
-    public Student student;
+    @ManyToMany
+    public List<Student> students = new ArrayList<>();
 
     public Laptop() {}
 

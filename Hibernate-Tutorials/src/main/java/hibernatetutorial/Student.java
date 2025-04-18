@@ -2,9 +2,10 @@ package hibernatetutorial;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Embedded;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,8 +20,8 @@ public class Student {
     @Embedded
     public Address address;
 
-    @OneToMany(mappedBy = "student")
-    public List<Laptop> laptop;
+    @ManyToMany(mappedBy = "students")
+    public List<Laptop> laptops = new ArrayList<>();
 
     public Student() {}
 

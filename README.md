@@ -1,37 +1,28 @@
-# One-to-Many/Many-to-One Relationship
+# Many-to-Many Relationship
 
-**Understanding the Relationships**
+In a many-to-many relationship, one student can have multiple laptops, and one laptop can be associated with multiple students. This requires an intermediary table (often called a join table or link table) in the database to manage the associations. This join table will typically contain foreign keys referencing the primary keys of both the Student and Laptop tables.
 
--   **One-to-Many (Student to Laptop):** This relationship implies that one student can own or be associated with multiple laptops. From the `Student` entity's perspective, it has a collection of `Laptop` objects.
-    
--   **Many-to-One (Laptop to Student):** This is the inverse of the One-to-Many relationship. It means that multiple laptops can be owned by or associated with a single student. From the `Laptop` entity's perspective, it refers to one `Student` object.
-    
+Steps to Implement Many-to-Many in Hibernate
 
-**Implementing the Relationships in Hibernate**
+Here's how you would modify your entities to establish a many-to-many relationship:
 
-To establish these relationships in Hibernate, you'll need to add annotations to your `Student` and `Laptop` classes.
+1. Modify the Student Entity:
 
-**1. One-to-Many (Student to Laptop)**
-
-To implement a One-to-Many relationship from `Student` to `Laptop`, you'll typically:
-
--   Add a collection (e.g., `List`, `Set`) of `Laptop` objects to the `Student` entity.
--   Use the `@OneToMany` annotation on this collection field in the `Student` class.
--   Use the `@JoinColumn` annotation on the _owning_ side (usually the `Laptop` entity in a unidirectional One-to-Many or the "many" side in a bidirectional relationship) to specify the foreign key column in the `Laptop` table that references the `Student` table.
-
-Here's how you would modify the `Student` class:
-
+Remove the @OneToMany annotation and the laptop list.
+Add a @ManyToMany annotation and a List of Laptop objects.
+Use the @JoinTable annotation to specify the details of the join table.
 Java
 
-```
 package hibernatetutorial;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Embedded;
-import java.util.List; // Or Set
+
+import java.util.List;
 
 @Entity
 public class Student {
@@ -45,9 +36,13 @@ public class Student {
     @Embedded
     public Address address;
 
-    @OneToMany
-    @JoinColumn(name = "student_roll_no") // Foreign key column in Laptop table
-    public List<Laptop> laptops; // Collection to hold multiple laptops
+    @ManyToMany
+    @JoinTable(
+        name = "student_laptop", // Name of the join table
+        joinColumns = @JoinColumn(name = "student_rollno"), // Foreign key referencing Student
+        inverseJoinColumns = @JoinColumn(name = "laptop_id") // Foreign key referencing Laptop
+    )
+    public List<Laptop> laptops; // Renamed to be plural
 
     public Student() {}
 
@@ -59,54 +54,29 @@ public class Student {
         this.laptops = new java.util.ArrayList<>(); // Initialize the list
     }
 
-    // Getter and Setter for 'laptops'
-    public List<Laptop> getLaptops() {
-        return laptops;
-    }
-
-    public void setLaptops(List<Laptop> laptops) {
-        this.laptops = laptops;
-    }
-
-    @Override
-    public String toString() {
-        return "Student{" +
-                "rollNo=" + rollNo +
-                ", name='" + name + '\'' +
-                ", age=" + age +
-                ", address=" + address +
-                ", laptops=" + (laptops != null ? laptops.toString() : "null") +
-                '}';
-    }
+    // ... (toString() method remains the same)
 }
+Explanation of @ManyToMany and @JoinTable in Student:
 
-```
+@ManyToMany: This annotation signifies a many-to-many relationship with the Laptop entity.
+@JoinTable: This annotation specifies the details of the join table in the database:
+name = "student_laptop": Sets the name of the join table to student_laptop.
+joinColumns = @JoinColumn(name = "student_rollno"): Defines the foreign key column in the student_laptop table that references the Student entity's primary key (rollNo).
+inverseJoinColumns = @JoinColumn(name = "laptop_id"): Defines the foreign key column in the student_laptop table that references the Laptop entity's primary key (id).
+2. Modify the Laptop Entity:
 
-**Explanation:**
-
--   `@OneToMany`: This annotation indicates a One-to-Many relationship with the `Laptop` entity.
--   `@JoinColumn(name = "student_roll_no")`: This annotation specifies the foreign key column in the `Laptop` table. The `student_roll_no` column in the `Laptop` table will hold the `rollNo` of the `Student` who owns the laptop. Hibernate will use this column to manage the association.
--   `public List<Laptop> laptops;`: This declares a `List` (you could also use a `Set`) to hold the multiple `Laptop` objects associated with this `Student`.
-
-**2. Many-to-One (Laptop to Student)**
-
-To implement the Many-to-One relationship from `Laptop` to `Student`, you'll:
-
--   Add a field of type `Student` to the `Laptop` entity.
--   Use the `@ManyToOne` annotation on this field in the `Laptop` class.
--   Use the `@JoinColumn` annotation to specify the foreign key column in the `Laptop` table that links back to the `Student` table's primary key.
-
-Here's how you would modify the `Laptop` class:
-
+Remove the @ManyToOne annotation and the student field.
+Add a @ManyToMany annotation and a List of Student objects.
+Use the mappedBy attribute to indicate that the join table is managed by the Student entity.
 Java
 
-```
 package hibernatetutorial;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+
+import java.util.List;
 
 @Entity
 public class Laptop {
@@ -117,9 +87,8 @@ public class Laptop {
     public String model;
     public double price;
 
-    @ManyToOne
-    @JoinColumn(name = "student_roll_no") // Foreign key column referencing Student
-    public Student student;
+    @ManyToMany(mappedBy = "laptops")
+    public List<Student> students; // Renamed to be plural
 
     public Laptop() {}
 
@@ -128,24 +97,7 @@ public class Laptop {
         this.company = company;
         this.model = model;
         this.price = price;
-    }
-
-    // Constructor to associate Laptop with a Student
-    public Laptop(int id, String company, String model, double price, Student student) {
-        this.id = id;
-        this.company = company;
-        this.model = model;
-        this.price = price;
-        this.student = student;
-    }
-
-    // Getter and Setter for 'student'
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
+        this.students = new java.util.ArrayList<>(); // Initialize the list
     }
 
     @Override
@@ -155,35 +107,42 @@ public class Laptop {
                 ", company='" + company + '\'' +
                 ", model='" + model + '\'' +
                 ", price=" + price +
-                ", student=" + (student != null ? "Student(rollNo=" + student.rollNo + ")" : "null") +
                 '}';
     }
 }
+Explanation of @ManyToMany in Laptop:
 
-```
+@ManyToMany(mappedBy = "laptops"): This annotation also signifies a many-to-many relationship with the Student entity. The mappedBy = "laptops" attribute is crucial here. It tells Hibernate that the relationship is managed by the laptops collection in the Student entity. Hibernate will not create a separate join table definition in the Laptop entity; it will use the one defined in the Student entity. This avoids having two join tables for the same relationship.
+3. The Address Entity Remains Unchanged:
 
-**Explanation:**
+The @Embeddable Address entity is not directly involved in the many-to-many relationship and doesn't need any modifications.
 
--   `@ManyToOne`: This annotation indicates a Many-to-One relationship with the `Student` entity.
--   `@JoinColumn(name = "student_roll_no")`: This annotation specifies the foreign key column in the `Laptop` table (`student_roll_no`) that references the primary key column (`rollNo`) of the `Student` table. Hibernate uses this to know which student owns this laptop.
--   `public Student student;`: This declares a field of type `Student` to hold the reference to the owning student.
+How it Works in the Database:
 
-**Database Schema Implications**
+When Hibernate persists these entities, it will create three tables:
 
-When Hibernate maps these entities to database tables, you'll typically have:
+student: With columns like rollNo (primary key), name, age, and the embedded address fields (city, state, pincode).
+laptop: With columns like id (primary key), company, model, and price.
+student_laptop (the join table): With two foreign key columns:
+student_rollno: Referencing the rollNo column in the student table.
+laptop_id: Referencing the id column in the laptop table.
+Each row in the student_laptop table represents an association between a specific student and a specific laptop. For example, if a student with rollNo = 101 has two laptops with id = 1 and id = 2, the student_laptop table would have two rows:
 
--   **`Student` Table:** With columns like `rollNo` (primary key), `name`, `age`, `city`, `state`, `pincode`.
--   **`Laptop` Table:** With columns like `id` (primary key), `company`, `model`, `price`, and a foreign key column `student_roll_no` that references the `rollNo` column of the `Student` table.
+student_rollno | laptop_id
+----------------|----------
+101             | 1
+101             | 2
+Managing the Relationship in Code:
 
-**Bidirectional vs. Unidirectional**
+To associate students and laptops in your Java code, you would add and remove Laptop objects from the laptops collection of a Student object, and vice versa (though typically, you'd manage it from the owning side, which is Student in this case since it defines the @JoinTable). Hibernate will then handle the necessary insertions and deletions in the student_laptop join table.
 
-The implementation above creates a **bidirectional** relationship. This means you can navigate the relationship from both sides:
+Example of Adding a Laptop to a Student:
 
--   From a `Student` object, you can access its list of `Laptop` objects using the `laptops` collection.
--   From a `Laptop` object, you can access the associated `Student` object using the `student` field.
+Java
 
-If you only need to navigate the relationship in one direction (e.g., only from `Laptop` to `Student` to find the owner), you could implement a **unidirectional** Many-to-One relationship by only adding the `@ManyToOne` and `@JoinColumn` annotations to the `Laptop` entity and omitting the `@OneToMany` and `laptops` collection in the `Student` entity.
+Student student = entityManager.find(Student.class, 101);
+Laptop laptop1 = entityManager.find(Laptop.class, 1);
 
-**In Summary**
-
-By using the `@OneToMany` and `@ManyToOne` annotations along with `@JoinColumn`, you can effectively define and manage One-to-Many and Many-to-One relationships between your `Student` and `Laptop` entities in Hibernate, allowing you to persist and retrieve related data from your database. Remember to adjust your constructors and potentially add helper methods to manage the associations between the entities.
+student.laptops.add(laptop1);
+entityManager.persist(student); // Or merge if the student is detached
+By making these changes, you've successfully converted the one-to-many/many-to-one relationship into a many-to-many relationship between Student and Laptop using Hibernate. Remember to update your database schema accordingly if you are not using Hibernate's auto-generation capabilities.
