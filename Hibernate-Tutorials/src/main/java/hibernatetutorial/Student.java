@@ -2,9 +2,10 @@ package hibernatetutorial;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Embedded;
+
+import java.util.List;
 
 @Entity
 public class Student {
@@ -18,18 +19,16 @@ public class Student {
     @Embedded
     public Address address;
 
-    @OneToOne
-    @JoinColumn(referencedColumnName = "id")
-    public Laptop laptop;
+    @OneToMany(mappedBy = "student")
+    public List<Laptop> laptop;
 
     public Student() {}
 
-    public Student(int rollNo, String name, int age, Address address, Laptop laptop) {
+    public Student(int rollNo, String name, int age, Address address) {
         this.name = name;
         this.age = age;
         this.rollNo = rollNo;
         this.address = address;
-        this.laptop = laptop;
     }
 
     @Override
@@ -39,7 +38,6 @@ public class Student {
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 ", address=" + address +
-                ", laptop=" + laptop +
                 '}';
     }
 }

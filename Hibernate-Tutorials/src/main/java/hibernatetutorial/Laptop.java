@@ -2,6 +2,8 @@ package hibernatetutorial;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Laptop {
@@ -11,6 +13,10 @@ public class Laptop {
     public String company;
     public String model;
     public double price;
+
+    @ManyToOne
+    @JoinColumn(name = "student_rollno")
+    public Student student;
 
     public Laptop() {}
 
